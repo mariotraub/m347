@@ -14,9 +14,9 @@ EXPOSE 	80	# Mit EXPOSE 80 wird gesagt das der port 80 offen ist und gemappt wer
 
 ### build
 ```shell
-docker build -t kn02b-db .
+docker build -t kn02b-db -f db.Dockerfile .
 
-docker build -t kn02b-web .
+docker build -t kn02b-web -f php.Dockerfile .
 ```
 
 ### run
