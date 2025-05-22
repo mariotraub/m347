@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mariadb:latest
+    container_name: m347-kn04a-db
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=kn04a
+    ports:
+      - "3306:3306"
+    networks:
+      tbz:
+  web:
+    build:
+      dockerfile: php.Dockerfile
+    container_name: m347-kn04a-web
+    ports:
+      - "8080:80"
+    networks:
+      tbz:
+networks:
+  tbz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.10.0.0/16
+          ip_range: 172.10.5.0/24
+          gateway: 172.10.5.254
