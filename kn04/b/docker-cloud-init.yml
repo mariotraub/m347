@@ -1,0 +1,116 @@
+#cloud-config
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    home: /home/ubuntu
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDz+p0ZTAjcMkqPlCXzDNDsE8rcp1fKz/2LalTu8fgFBVhrUuqCTgNRhgmOyTQCEh6WWY0WSFGMFhHfghCuuM8EGJJPkgvSQPngra4gnOv3q9ad905sjGnR7yV8PEIBuAmkTVFveQxvIgsS7zE0w1p8ajDIEkXqCgQdD15ekA3W3cOoYNJcDK0vYpLzTwBWqaZUGxA8tJc0daUZz3OguCiyrAu0RkzoQSKHb/bai7Yf8LBS9OdYQYfgf2/ym3v5KzLF/HGltzkn39yMrNZQLo70itdCeqiFHY9j9NwjE5ezBOB/ulA+4AWfd8sDRK271LIC92wxleEKlU+YsC0/pJK7 aws-key
+      - ssh-rsa # teacher-key einfügen
+ssh_pwauth: false
+disable_root: false
+package_update: true
+package_upgrade: true
+groups:
+  - docker
+system_info:
+  default_user:
+    groups: [docker]
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - unattended-upgrades
+final_message: "The system is finally up, after $UPTIME seconds"
+write_files:
+  - path: /app/db.php
+    content: |
+      <html>
+      <head></head>
+      <body>
+      Diese Seite macht eine Abfrage auf die Datenbank. <br />
+      Das ausgeführte Query ist: <i>select Host, User from mysql.user;</i><br /><br />
+      Das Resultat: <br />
+      <?php
+              //database
+              $servername = "m347-kn04a-db";
+              $username = "root";
+              $password = "root";
+              $dbname = "kn04a";
+              // Create connection
+              $conn = new mysqli($servername, $username, $password, $dbname);
+              // Check connection
+              if ($conn->connect_error) {
+                      die("Connection failed: " . $conn->connect_error);
+              }
+              $sql = "select Host, User from mysql.user;";
+              $result = $conn->query($sql);
+              while($row = $result->fetch_assoc()){
+                      echo("<li>" . $row["Host"] . " / " . $row["User"] . "</li>");
+              }
+              //var_dump($result);
+      ?>
+      </body>
+      </html>
+    permission: '0666'
+  - path: /app/info.php
+    content: |
+      <?php
+      // Show all information, defaults to INFO_ALL
+      phpinfo();
+      ?>
+    permission: '0666'
+  - path: /app/Dockerfile
+    content: |
+      FROM php:8.0-apache
+
+      COPY ./db.php /var/www/html/
+      COPY ./info.php /var/www/html/
+
+      RUN docker-php-ext-install mysqli
+
+      EXPOSE 80
+    permission: '0666'
+  - path: /app/docker-compose.yml
+    content: |
+      services:
+        db:
+          image: mariadb:latest
+          container_name: m347-kn04a-db
+          environment:
+            - MARIADB_ROOT_PASSWORD=root
+            - MARIADB_DATABASE=kn04a
+          ports:
+            - "3306:3306"
+          networks:
+            tbz:
+        web:
+          build:
+            dockerfile: Dockerfile
+          container_name: m347-kn04a-web
+          ports:
+            - "8080:80"
+          networks:
+            tbz:
+      networks:
+        tbz:
+          driver: bridge
+          ipam:
+            config:
+              - subnet: 172.10.0.0/16
+                ip_range: 172.10.5.0/24
+                gateway: 172.10.5.254
+runcmd:
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - systemctl enable docker
+  - systemctl start docker
+  - cd /app
+  - docker compose up -d
+
