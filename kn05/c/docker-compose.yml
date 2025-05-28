@@ -1,0 +1,26 @@
+services:
+  web1:
+    image: nginx
+    container_name: kn05c-1
+    ports:
+      - '8080:80'
+    volumes:
+      - type: volume
+        source: kn05c
+        target: /app
+      - type: bind
+        source: ./html
+        target: /usr/share/nginx/html
+      - type: tmpfs
+        target: /tmpfs
+
+  web2:
+    image: nginx
+    container_name: kn05c-2
+    ports:
+      - '8081:80'
+    volumes:
+      - kn05c:/usr/share/nginx/html
+
+volumes:
+  kn05c:
