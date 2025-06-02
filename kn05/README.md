@@ -17,15 +17,15 @@ docker run -it --name kn05a -v ./docker-dir:/app ubuntu /bin/bash
 
 Create Volume
 ```shell
-docker volume create
+docker volume create kn05b
 ```
 
 ```shell
-docker run --name kn05b-1 -v ./b/:/usr/share/nginx/html -p 8080:80 -d nginx
+docker run --name kn05b-1 -v kn05b:/usr/share/nginx/html -p 8080:80 -d nginx
 ```
 
 ```shell
- docker run -it --name kn05b-2 -v ./b:/app ubuntu /bin/bash
+ docker run -it --name kn05b-2 -v kn05b:/app ubuntu /bin/bash
 ```
 
 ![b-mount-gif](./video2.gif)  
