@@ -25,7 +25,7 @@ high-availability: yes
 ```
 ## Node entfernen
 ### Schritt 1
-![leave](assets/2025-06-16-14-24-48.png)
+![leave](assets/2025-06-16-15-10-39.png)
 ### Schritt 2
 ![remove](assets/2025-06-16-14-26-45.png)
 ## Node als Worker hinzufügen
