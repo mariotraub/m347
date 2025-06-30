@@ -10,4 +10,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD flask run
+CMD flask run --port=8002
